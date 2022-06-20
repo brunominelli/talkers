@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { readTalkerFile } = require('./assets');
+const { readTalkerFile, setRandomLoginToken } = require('./assets');
 
 const app = express();
 app.use(bodyParser.json());
@@ -25,6 +25,11 @@ app.get('/talker/:id', (request, response) => {
   const talker = talkers.find((person) => person.id === Number(id));
   if (talker) return response.status(200).json(talker);
   return response.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+});
+
+app.post('/login', (request, response) => {
+  const token = setRandomLoginToken();
+  return response.status(200).json({ token });
 });
 
 app.listen(PORT, () => {
