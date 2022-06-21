@@ -102,16 +102,16 @@ const validateTalkWatchedAt = (watchedAt, response) => {
 };
 
 const validateTalkRate = (rate, response) => {
-  if (!rate) {
-    return response
-      .status(400)
-      .json({ message: 'O campo "rate" é obrigatório' });
-  }
-
   if (Number(rate) < 1 || Number(rate) > 5) {
     return response
       .status(400)
       .json({ message: 'O campo "rate" deve ser um inteiro de 1 à 5' });
+  }
+
+  if (!rate) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "rate" é obrigatório' });
   }
 };
 
@@ -161,6 +161,25 @@ const createTalker = (request, response) => {
   return response.status(201).json(talker);
 };
 
+const updateTalker = (request, response) => {
+  const { name, age, talk } = request.body;
+  const { id } = request.params;
+
+  validateName(name, response);
+  validateAge(age, response);
+  validateTalk(talk, response);
+
+  const talkers = readTalkerFile(talkerJSON);
+  const talker = talkers.find((person) => person.id === Number(id));
+  talker.name = name;
+  talker.age = age;
+  talker.id = Number(id);
+  talker.talk = talk;
+
+  writeTalkerFile(talkerJSON, JSON.stringify(talkers));
+  return response.status(200).json(talker);
+};
+
 module.exports = {
   readTalkerFile,
   getAllTalkers,
@@ -168,4 +187,5 @@ module.exports = {
   validateLogin,
   validateToken,
   createTalker,
+  updateTalker,
 };
