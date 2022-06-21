@@ -191,7 +191,6 @@ const deleteTalker = (request, response) => {
 
 const searchTalker = (request, response) => {
   const { q } = request.query;
-  console.log(q);
   const talkers = readTalkerFile(talkerJSON);
   const talker = talkers.filter((person) => person.name.includes(q));
   
