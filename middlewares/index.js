@@ -1,19 +1,26 @@
 const fs = require('fs');
 const crypto = require('crypto');
 
-const readTalkerFile = (data) => JSON.parse(fs.readFileSync(data, 'utf8'));
+const talkerJSON = './talker.json';
+const regexEmail = new RegExp(/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/);
+const regexDate = new RegExp(/^\d{2}\/\d{2}\/\d{4}$/);
+
+const readTalkerFile = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+
+const writeTalkerFile = (file, data) => fs.writeFileSync(file, data);
 
 const setToken = () => crypto.randomBytes(8).toString('hex');
 
 const getAllTalkers = (_request, response) => {
-  const talkers = readTalkerFile('./talker.json');
+  const talkers = readTalkerFile(talkerJSON);
+
   if (talkers) return response.status(200).json(talkers);
   return response.status(200).json({ talkers: [] });
 };
 
 const getTalkerById = (request, response) => {
   const { id } = request.params;
-  const talkers = readTalkerFile('./talker.json');
+  const talkers = readTalkerFile(talkerJSON);
   const talker = talkers.find((person) => person.id === Number(id));
 
   if (talker) return response.status(200).json(talker);
@@ -21,8 +28,6 @@ const getTalkerById = (request, response) => {
 };
 
 const validateLoginEmail = (email, response) => {
-  const regexEmail = new RegExp(/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/);
-
   if (!email) {
     return response.status(400).json({ message: 'O campo "email" é obrigatório' });
   }
@@ -54,9 +59,113 @@ const validateLogin = (request, response) => {
   return response.status(200).json({ token });
 };
 
+const validateName = (name, response) => {
+  if (!name) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "name" é obrigatório' });
+    }
+
+  if (name.length < 3) {
+    return response
+      .status(400)
+      .json({ message: 'O "name" deve ter pelo menos 3 caracteres' });
+  }
+};
+
+const validateAge = (age, response) => {
+  if (!age) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "age" é obrigatório' });
+  }
+
+  if (Number(age) < 18) {
+    return response
+      .status(400)
+      .json({ message: 'A pessoa palestrante deve ser maior de idade' });
+  }
+};
+
+const validateTalkWatchedAt = (watchedAt, response) => {
+  if (!watchedAt) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "watchedAt" é obrigatório' });
+  }
+
+  if (!regexDate.test(watchedAt)) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
+  }
+};
+
+const validateTalkRate = (rate, response) => {
+  if (!rate) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "rate" é obrigatório' });
+  }
+
+  if (Number(rate) < 1 || Number(rate) > 5) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "rate" deve ser um inteiro de 1 à 5' });
+  }
+};
+
+const validateToken = (request, response, next) => {
+  const { authorization } = request.headers;
+  if (!authorization) {
+    return response
+      .status(401)
+      .json({ message: 'Token não encontrado' });
+  }
+
+  if (authorization.length !== 16) {
+    return response
+      .status(401)
+      .json({ message: 'Token inválido' });
+  }
+
+  next();
+};
+
+const validateTalk = (talk, response) => {
+  if (!talk) {
+    return response
+      .status(400)
+      .json({ message: 'O campo "talk" é obrigatório' });
+  }
+
+  const { watchedAt, rate } = talk;
+  validateTalkRate(rate, response);
+  validateTalkWatchedAt(watchedAt, response);
+};
+
+const createTalker = (request, response) => {
+  const { name, age, talk } = request.body;
+
+  validateName(name, response);
+  validateAge(age, response);
+  validateTalk(talk, response);
+
+  const talkers = readTalkerFile(talkerJSON);
+  const id = talkers.length + 1;
+  const talker = { name, age, id, talk };
+  
+  talkers.push(talker);
+  writeTalkerFile(talkerJSON, JSON.stringify(talkers));
+
+  return response.status(201).json(talker);
+};
+
 module.exports = {
   readTalkerFile,
   getAllTalkers,
   getTalkerById,
   validateLogin,
+  validateToken,
+  createTalker,
 };

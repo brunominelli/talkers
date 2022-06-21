@@ -4,6 +4,8 @@ const {
   getAllTalkers,
   getTalkerById,
   validateLogin,
+  createTalker,
+  validateToken,
 } = require('./middlewares');
 
 const app = express();
@@ -22,6 +24,8 @@ app.get('/talker', getAllTalkers);
 app.get('/talker/:id', getTalkerById);
 
 app.post('/login', validateLogin);
+
+app.post('/talker', validateToken, createTalker);
 
 app.listen(PORT, () => {
   console.log('Online');
