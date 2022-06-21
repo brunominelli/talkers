@@ -8,6 +8,7 @@ const {
   validateToken,
   updateTalker,
   deleteTalker,
+  searchTalker,
 } = require('./middlewares');
 
 const app = express();
@@ -22,6 +23,8 @@ app.get('/', (_request, response) => {
 });
 
 app.get('/talker', getAllTalkers);
+
+app.get('/talker/search', validateToken, searchTalker);
 
 app.get('/talker/:id', getTalkerById);
 

@@ -189,6 +189,15 @@ const deleteTalker = (request, response) => {
   return response.status(204).end();
 };
 
+const searchTalker = (request, response) => {
+  const { q } = request.query;
+  console.log(q);
+  const talkers = readTalkerFile(talkerJSON);
+  const talker = talkers.filter((person) => person.name.includes(q));
+  
+  return response.status(200).json(talker);
+};
+
 module.exports = {
   readTalkerFile,
   getAllTalkers,
@@ -198,4 +207,5 @@ module.exports = {
   createTalker,
   updateTalker,
   deleteTalker,
+  searchTalker,
 };
