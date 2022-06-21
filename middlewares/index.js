@@ -180,6 +180,15 @@ const updateTalker = (request, response) => {
   return response.status(200).json(talker);
 };
 
+const deleteTalker = (request, response) => {
+  const { id } = request.params;
+  const talkers = readTalkerFile(talkerJSON);
+  const talker = talkers.filter((person) => person.id !== Number(id));
+  writeTalkerFile(talkerJSON, JSON.stringify(talker));
+
+  return response.status(204).end();
+};
+
 module.exports = {
   readTalkerFile,
   getAllTalkers,
@@ -188,4 +197,5 @@ module.exports = {
   validateToken,
   createTalker,
   updateTalker,
+  deleteTalker,
 };
